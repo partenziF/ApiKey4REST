@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace ApiKey4REST.Authentication {
     public static class ApiKeyAuthenticationBuilderMethodExtensions {
 
-        public static AuthenticationBuilder AddApiKey4RESTSupport( this AuthenticationBuilder authenticationBuilder , Action<ApiKeyAuthenticationOptions> options ) {
-            return authenticationBuilder.AddScheme<ApiKeyAuthenticationOptions , ApiKeyAuthenticationHandler>( ApiKeyAuthenticationOptions.DefaultScheme , options );
+        public static AuthenticationBuilder AddApiKey4RESTSupport( this AuthenticationBuilder authenticationBuilder , Action<ApiKey4RESTAuthenticationOptions> options ) {
+            return authenticationBuilder.AddScheme<ApiKey4RESTAuthenticationOptions , ApiKey4RESTAuthenticationHandler>( ApiKey4RESTAuthenticationOptions.DefaultScheme , options );
         }
 
     }

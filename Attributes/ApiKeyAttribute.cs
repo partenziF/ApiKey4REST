@@ -22,27 +22,27 @@ namespace WebAppTest01.Attributes {
         public override async Task OnActionExecutionAsync( ActionExecutingContext context , ActionExecutionDelegate next ) {
         
 
-                if ( context.HttpContext.Request.Headers.TryGetValue( APIKEYNAME , out var extractedApiKey ) ) {
-                //Old method, preferred to get injection object
-                //var appSettings = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>(); 
-                //or install Microsoft.Extensions.Configuration.Binder to get extensionm method
-                //var apiKey = appSettings.GetValue<string>( APIKEYNAME );      
-                var apiKey = appSettings[ApiKey4REST.Authentication.Constant.APIKEY_VALUE];
+            //    if ( context.HttpContext.Request.Headers.TryGetValue( APIKEYNAME , out var extractedApiKey ) ) {
+            //    //Old method, preferred to get injection object
+            //    //var appSettings = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>(); 
+            //    //or install Microsoft.Extensions.Configuration.Binder to get extensionm method
+            //    //var apiKey = appSettings.GetValue<string>( APIKEYNAME );      
+            //    var apiKey = appSettings[ApiKey4REST.Authentication.Constant.APIKEY_VALUE];
 
-                if ( !apiKey.Equals( extractedApiKey ) ) {
+            //    if ( !apiKey.Equals( extractedApiKey ) ) {
 
-                    context.Result = new UnauthorizedObjectResult( "Api Key is not valid" );
+            //        context.Result = new UnauthorizedObjectResult( "Api Key is not valid" );
 
-                    return;
-                }
+            //        return;
+            //    }
 
 
-            } else {
+            //} else {
 
-                context.Result = new UnauthorizedObjectResult( "Api Key was not provided" );
-                return;
+            //    context.Result = new UnauthorizedObjectResult( "Api Key was not provided" );
+            //    return;
 
-            }
+            //}
 
 
             await next();

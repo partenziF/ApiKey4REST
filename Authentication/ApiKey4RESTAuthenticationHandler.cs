@@ -1,4 +1,5 @@
-﻿using ApiKey4REST.JSON;
+﻿using ApiKey4REST.Helpers;
+using ApiKey4REST.JSON;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,41 +16,49 @@ using System.Threading.Tasks;
 
 namespace ApiKey4REST.Authentication {
 
-    public static class Constant {
-        public const string APIKEY_VALUE = "ApiKey4REST:Header-Key";
-    }
+    //public static class Constant {
+    //    public const string APIKEY_VALUE = "ApiKey4REST:Header-Key";
+    //}
 
-    public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions> {
+    public class ApiKey4RESTAuthenticationHandler : AuthenticationHandler<ApiKey4RESTAuthenticationOptions> {
 
         private const string ProblemDetailsContentType = "application/problem+json";
         
-        private readonly IApiKeyRepository _apikeyRepository;
-        private readonly IConfiguration _configuration;
-        public ApiKeyAuthenticationHandler( IOptionsMonitor<ApiKeyAuthenticationOptions> options , ILoggerFactory logger , UrlEncoder encoder , ISystemClock clock , IConfiguration configuration, IApiKeyRepository repository ) : base( options , logger , encoder , clock ) {
-            _apikeyRepository = repository ?? throw new ArgumentNullException( nameof( repository ) );
-            _apikeyRepository.Read();
-            this._configuration = configuration;
+        private readonly IApiKeyRepository apikeyRepository;
+        private readonly IConfiguration configuration;
+
+        public ApiKey4RESTSettings Settings { get; }
+
+        public ApiKey4RESTAuthenticationHandler( IOptionsMonitor<ApiKey4RESTAuthenticationOptions> options , ILoggerFactory logger , UrlEncoder encoder , ISystemClock clock , IOptions<ApiKey4RESTSettings> settings , IApiKeyRepository repository ) : base( options , logger , encoder , clock ) {
+            apikeyRepository = repository ?? throw new ArgumentNullException( nameof( repository ) );
+            apikeyRepository.Read();
+            this.Settings = settings.Value;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync() {
 
-            var ApiKeyHeaderName = this._configuration[Constant.APIKEY_VALUE];
-            if ( String.IsNullOrWhiteSpace( ApiKeyHeaderName ) ) {
-                return AuthenticateResult.NoResult();
+
+            if ( !Request.Headers.ContainsKey( Settings.HeaderKey ) ) {
+                return AuthenticateResult.Fail( "No ApiKey found." );
             }
 
-            if ( !Request.Headers.TryGetValue( ApiKeyHeaderName , out var apiKeyHeaderValues ) ) {
+            //var ApiKeyHeaderName = this.configuration[Constant.APIKEY_VALUE];
+            //if ( String.IsNullOrWhiteSpace( ApiKeyHeaderName ) ) {
+            //    return AuthenticateResult.Fail( "No ApiKey found." );
+            //}
 
-                return  AuthenticateResult.NoResult();
+            if ( !Request.Headers.TryGetValue( Settings.HeaderKey , out var apiKeyHeaderValues ) ) {
+
+                return AuthenticateResult.Fail( "Invalid ApiKey value." );
             }
 
             var providedApiKey = apiKeyHeaderValues.FirstOrDefault();
 
             if ( apiKeyHeaderValues.Count == 0 || string.IsNullOrWhiteSpace( providedApiKey ) ) {
-                return AuthenticateResult.NoResult();
+                return AuthenticateResult.Fail( "Invalid ApiKey value." );
             }
 
-            ApiKey validApiKey = await _apikeyRepository.Find( providedApiKey );
+            ApiKey validApiKey = await apikeyRepository.Find( providedApiKey );
 
             if ( validApiKey != null ) {
 
@@ -65,9 +74,11 @@ namespace ApiKey4REST.Authentication {
 
                 return AuthenticateResult.Success( ticket );
 
+            } else {
+                return AuthenticateResult.Fail( "Invalid ApiKey value." );
             }
 
-            return AuthenticateResult.NoResult();
+            
 
         }
 
